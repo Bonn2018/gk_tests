@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Run the action
-        uses: peculiarventures/goodkey-win-signtool-action
+        uses: peculiarventures/goodkey-win-signtool-action@v1.1.0
         with:
           organization: "a3dac85b-0df1-48e0-8fa6-9d8b3a2cb837"
           token: ${{ secrets.CLI_SIGNING_ACCESS_TOKEN }}
@@ -26,6 +26,7 @@ jobs:
           description: "This is a test file"
           description_url: "https://example.com"
           file_digest_algorithm: "sha256"
+
   windows-signing-tests:
     name: Windows GPG Signing Tests
     runs-on: windows-latest
