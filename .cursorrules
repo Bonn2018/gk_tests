@@ -1,0 +1,31 @@
+# Cursor Rules for GK Tests Project
+
+## Language
+- All code comments must be in English
+- All documentation must be in English
+- All commit messages should be in English
+
+## Code Style
+- Use TypeScript strict mode
+- Use meaningful variable and function names
+- Add comments for complex logic (in English only)
+- Keep functions focused and single-purpose
+
+## Testing
+- Use Jest as the testing framework
+- Use TypeScript for all test files (*.test.ts)
+- Docker containers should be managed using `testcontainers` library
+- Always clean up containers in `afterAll` hooks
+- Use appropriate timeouts for Docker tests (minimum 60 seconds)
+- Prefer sequential test execution to avoid Docker conflicts
+
+## API Testing
+- Use native `fetch` API (Node.js 18+) instead of external HTTP clients when possible
+- Always handle errors properly in API tests
+- Use environment variables for API endpoints
+
+## Project Structure
+- Tests go in `tests/` directory, organized by type (docker, windows-gpg, api-hash-signing, api-encryption)
+- Utilities go in `utils/` directory
+- Test fixtures go in `fixtures/` directory
+
