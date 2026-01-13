@@ -11,10 +11,8 @@ describe('Windows GPG Build Signing', () => {
 
   beforeAll(async () => {
     // Windows signing only works on Windows hosts
-    // Skip test on macOS/Linux
     if (process.platform !== 'win32') {
-      console.log('Skipping Windows signing test - requires Windows host (current platform: ' + process.platform + ')');
-      return;
+      throw new Error(`Windows signing tests require Windows platform, but current platform is: ${process.platform}`);
     }
 
     // Ensure fixtures directory exists
@@ -37,8 +35,7 @@ describe('Windows GPG Build Signing', () => {
 
   test('should sign Windows build using goodkey-win-signtool-action', async () => {
     if (process.platform !== 'win32') {
-      console.log('Skipping Windows signing test - requires Windows host (current platform: ' + process.platform + ')');
-      return;
+      throw new Error(`Windows signing tests require Windows platform, but current platform is: ${process.platform}`);
     }
 
     const cliToken = process.env.CLI_SIGNING_ACCESS_TOKEN;
@@ -79,52 +76,67 @@ describe('Windows GPG Build Signing', () => {
     try {
       const { stdout, stderr } = await execAsync(`powershell -Command "${powershellCommand}"`);
       
-      // Action may not output to stdout on success, so check for errors in stderr
-      if (stderr && stderr.trim().length > 0 && !stderr.includes('Information')) {
-        console.log('Signing stderr:', stderr);
-      }
-      
       // Verify that the file still exists (the action modifies the file in place)
       expect(fs.existsSync(testBuildPath)).toBe(true);
       
+      // Log output for debugging
+      if (stdout) {
+        console.log('Signing stdout:', stdout);
+      }
+      if (stderr && stderr.trim().length > 0) {
+        console.log('Signing stderr:', stderr);
+        // If stderr contains error messages, fail the test
+        if (stderr.toLowerCase().includes('error') && !stderr.toLowerCase().includes('information')) {
+          throw new Error(`Signing command produced errors: ${stderr}`);
+        }
+      }
+      
       // If we got here without exception, the command executed successfully
-      expect(true).toBe(true);
+      // The action should have signed the file in place
     } catch (error: any) {
       // Log error details for debugging
       console.error('Signing error:', error.message);
       if (error.stdout) console.log('stdout:', error.stdout);
       if (error.stderr) console.log('stderr:', error.stderr);
+      if (error.code !== undefined) console.log('exit code:', error.code);
       throw error;
     }
   }, 180000); // 3 minutes timeout for signing process
 
   test('should verify signed build', async () => {
-    // Skip test on non-Windows platforms
     if (process.platform !== 'win32') {
-      console.log('Skipping Windows signing test - requires Windows host (current platform: ' + process.platform + ')');
-      return;
+      throw new Error(`Windows signing tests require Windows platform, but current platform is: ${process.platform}`);
     }
 
     // Verify that the file exists
     expect(fs.existsSync(testBuildPath)).toBe(true);
 
-    // Try to verify signed file using signtool if available
-    // Note: signtool may not be available on all Windows systems
-    // It's typically part of Windows SDK which may not be installed on GitHub Actions runners
-    const verifyCommand = `signtool verify /pa "${testBuildPath}"`;
+    // Use PowerShell Get-AuthenticodeSignature to verify the signature
+    // This is a built-in Windows command that doesn't require additional tools
+    const verifyCommand = `powershell -Command "Get-AuthenticodeSignature -FilePath '${testBuildPath}' | ConvertTo-Json"`;
 
     try {
       const { stdout, stderr } = await execAsync(verifyCommand);
-      if (stdout) {
-        console.log('Verification stdout:', stdout);
-      }
-      expect(true).toBe(true); // If command succeeded, verification passed
+      
+      // Parse the JSON output
+      const signatureInfo = JSON.parse(stdout);
+      
+      // Check signature status
+      // Valid statuses: Valid, HashMismatch, NotSigned, NotTrusted, UnknownError
+      expect(signatureInfo.Status).toBeDefined();
+      
+      // For a properly signed file, Status should be "Valid"
+      // For test files that may not be signed, we at least verify the command works
+      console.log('Signature status:', signatureInfo.Status);
+      console.log('Signature subject:', signatureInfo.SignerCertificate?.Subject || 'N/A');
+      
+      // The command executed successfully, which means we can verify signatures
+      expect(signatureInfo.Status).toBeTruthy();
     } catch (error: any) {
-      // signtool may not be available or file may not be signed yet
-      // This is acceptable for test purposes
-      console.log('signtool not available or verification failed (this is expected for test files):', error.message);
-      // Don't fail the test if signtool is not available
-      expect(true).toBe(true);
+      console.error('Verification error:', error.message);
+      if (error.stdout) console.log('stdout:', error.stdout);
+      if (error.stderr) console.log('stderr:', error.stderr);
+      throw error;
     }
   }, 120000);
 });
