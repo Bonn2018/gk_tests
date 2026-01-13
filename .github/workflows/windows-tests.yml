@@ -34,6 +34,20 @@ jobs:
           echo "DOCKER_PORT=${{ secrets.DOCKER_PORT }}" | Out-File -FilePath env/.env.dev -Append -Encoding utf8
         shell: powershell
 
+      - name: Sign build file using goodkey-win-signtool-action
+        uses: peculiarventures/goodkey-win-signtool-action@v1.1.0
+        with:
+          organization: ${{ secrets.GK_ORGANIZATION }}
+          token: ${{ secrets.CLI_SIGNING_ACCESS_TOKEN }}
+          certificate: ${{ secrets.GK_CERTIFICATE }}
+          file: "fixtures/sample-build.exe"
+          timestamp_rfc3161_url: "http://timestamp.digicert.com"
+          timestamp_digest_algorithm: "sha256"
+
+      - name: Verify signature
+        run: powershell -File utils/verify-signature.ps1 -FilePath "fixtures/sample-build.exe"
+        shell: powershell
+
       - name: Run Windows signing tests
         run: npm test -- tests/windows-gpg/signing.test.ts
         env:
@@ -48,4 +62,3 @@ jobs:
             coverage/
             test-results/
           if-no-files-found: ignore
-
