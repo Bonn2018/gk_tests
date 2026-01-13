@@ -8,6 +8,24 @@ on:
   workflow_dispatch: # Allow manual trigger
 
 jobs:
+  sign:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Run the action
+        uses: peculiarventures/goodkey-win-signtool-action
+        with:
+          organization: "a3dac85b-0df1-48e0-8fa6-9d8b3a2cb837"
+          token: ${{ secrets.CLI_SIGNING_ACCESS_TOKEN }}
+          certificate: "224b501264c1454d4627268297670451aed3b0d9"
+          file: "fixtures/sample-build.exe"
+          timestamp_rfc3161_url: "http://timestamp.digicert.com"
+          timestamp_digest_algorithm: "sha256"
+          description: "This is a test file"
+          description_url: "https://example.com"
+          file_digest_algorithm: "sha256"
   windows-signing-tests:
     name: Windows GPG Signing Tests
     runs-on: windows-latest
@@ -33,6 +51,28 @@ jobs:
           echo "CLI_SIGNING_ACCESS_TOKEN=${{ secrets.CLI_SIGNING_ACCESS_TOKEN }}" | Out-File -FilePath env/.env.dev -Append -Encoding utf8
           echo "DOCKER_PORT=${{ secrets.DOCKER_PORT }}" | Out-File -FilePath env/.env.dev -Append -Encoding utf8
         shell: powershell
+
+      - name: Install GoodKey Local Application
+        run: |
+          # GoodKey requires Local Application to be installed
+          # The action should handle installation, but if it fails, we may need to install manually
+          # Check if gkcng.dll exists
+          $gkcngPath = "C:\Windows\System32\gkcng.dll"
+          if (Test-Path $gkcngPath) {
+            Write-Host "GoodKey DLL found. Attempting to register..."
+            # Try to register with admin privileges (GitHub Actions runners usually have admin rights)
+            $result = regsvr32.exe /s $gkcngPath 2>&1
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "GoodKey DLL registered successfully"
+            } else {
+              Write-Warning "Failed to register GoodKey DLL. Exit code: $LASTEXITCODE"
+              Write-Host "Output: $result"
+            }
+          } else {
+            Write-Host "GoodKey DLL not found. The action will attempt to install it."
+          }
+        shell: powershell
+        continue-on-error: true
 
       - name: Sign build file using goodkey-win-signtool-action
         uses: peculiarventures/goodkey-win-signtool-action@v1.1.0
