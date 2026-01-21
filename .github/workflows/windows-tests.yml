@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Run the action
-        uses: peculiarventures/goodkey-win-signtool-action@v1.1.0
+        uses: peculiarventures/goodkey-win-signtool-action@add-info-logs
         with:
           organization: "ee6a1848-6601-4a38-b969-72bf53eeb8eb"
           token: ${{ secrets.CLI_SIGNING_ACCESS_TOKEN }}
