@@ -8,6 +8,24 @@ on:
   workflow_dispatch: # Allow manual trigger
 
 jobs:
+  sign:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Run the action
+        uses: peculiarventures/goodkey-win-signtool-action@add-info-logs
+        with:
+          organization: "ee6a1848-6601-4a38-b969-72bf53eeb8eb"
+          token: ${{ secrets.CLI_SIGNING_ACCESS_TOKEN }}
+          certificate: "cae3b0e30a00432301bacfd391568c4d2e163b9c"
+          file: "fixtures/sample.exe"
+          timestamp_rfc3161_url: "http://timestamp.digicert.com"
+          timestamp_digest_algorithm: "sha256"
+          description: "This is a test file"
+          description_url: "https://example.com"
+          file_digest_algorithm: "sha256"
   sign2:
     runs-on: windows-latest
     steps:
