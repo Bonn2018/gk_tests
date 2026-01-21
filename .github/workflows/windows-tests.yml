@@ -17,9 +17,9 @@ jobs:
       - name: Run the action
         uses: peculiarventures/goodkey-win-signtool-action@v1.1.0
         with:
-          organization: "a3dac85b-0df1-48e0-8fa6-9d8b3a2cb837"
+          organization: "ee6a1848-6601-4a38-b969-72bf53eeb8eb"
           token: ${{ secrets.CLI_SIGNING_ACCESS_TOKEN }}
-          certificate: "224b501264c1454d4627268297670451aed3b0d9"
+          certificate: "cae3b0e30a00432301bacfd391568c4d2e163b9c"
           file: "fixtures/sample-build.exe"
           timestamp_rfc3161_url: "http://timestamp.digicert.com"
           timestamp_digest_algorithm: "sha256"
