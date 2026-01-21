@@ -9,7 +9,7 @@ on:
 
 jobs:
   sign:
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -27,7 +27,7 @@ jobs:
           description_url: "https://example.com"
           file_digest_algorithm: "sha256"
   sign2:
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
