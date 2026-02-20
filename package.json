@@ -23,12 +23,17 @@
   },
   "homepage": "https://github.com/Bonn2018/gk_tests#readme",
   "devDependencies": {
+    "@peculiar/x509": "^1.14.3",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.0.6",
     "dotenv": "^17.2.3",
     "jest": "^30.2.0",
     "testcontainers": "^11.11.0",
     "ts-jest": "^29.4.6",
+    "tslib": "^2.8.1",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@peculiar/asn1-schema": "^2.6.0"
   }
 }
