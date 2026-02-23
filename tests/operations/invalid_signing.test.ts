@@ -13,6 +13,7 @@ import {
   downloadCertificate,
   createSignOperation,
   finalizeOperation,
+  getKeyMetadata,
 } from '../../api';
 import { toBase64Url } from '../../utils';
 
@@ -22,7 +23,6 @@ describe('API Operations - Invalid Signing', () => {
   let testData: string;
 
   test('should fail when finalizing operation with raw data instead of hash', async () => {
-    const ALGORITHM = 'RSASSA_PKCS1_2048_SHA256';
     const ACCESS_TOKEN = process.env.API_SIGNING_ACCESS_TOKEN;
     const CERTIFICATE_ID = process.env.TEST_CERTIFICATE_ID;
 
@@ -49,6 +49,10 @@ describe('API Operations - Invalid Signing', () => {
     keyId = certificate.key.id;
 
     expect(keyId).toBeDefined();
+
+    const keyMetadata = await getKeyMetadata(ACCESS_TOKEN, keyId);
+    const ALGORITHM = keyMetadata.algorithms[0];
+
     
     // Step 2: Prepare test data (raw, not hashed)
     testData = 'test data for signing';
@@ -67,20 +71,9 @@ describe('API Operations - Invalid Signing', () => {
     // Step 4: Try to finalize operation with raw data instead of hash
     // This should fail because the API expects a hash, not raw data
     const base64urlRawData = toBase64Url(testDataBuffer);
+    const res = await finalizeOperation(ACCESS_TOKEN, keyId, operationId, base64urlRawData)
 
-    await expect(
-      finalizeOperation(ACCESS_TOKEN, keyId, operationId, base64urlRawData)
-    ).rejects.toThrow();
-
-    // Verify that the error message contains relevant information
-    try {
-      await finalizeOperation(ACCESS_TOKEN, keyId, operationId, base64urlRawData);
-    } catch (error: any) {
-      expect(error.message).toBeDefined();
-      expect(typeof error.message).toBe('string');
-      // Error should mention the endpoint and method
-      expect(error.message).toContain('PATCH');
-      expect(error.message).toContain('/finalize');
-    }
+    expect(res.operation.status).toBe('error');
+    expect(res.operation.error).toBeDefined();
   }, 120000);
 });

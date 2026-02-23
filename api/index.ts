@@ -140,3 +140,15 @@ export async function finalizeOperation(
   );
   return await response.json();
 }
+
+export async function getKeyMetadata(
+  token: string,
+  keyId: string
+): Promise<any> {
+  const response = await makeApiRequest(
+    token,
+    'GET',
+    `/key/${keyId}`
+  );
+  return await response.json();
+}
