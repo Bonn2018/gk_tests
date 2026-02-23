@@ -25,10 +25,6 @@ The `prepare_env` script picks the first provider that supports both a popular s
 ```
 gk_tests/
 ├── tests/
-│   ├── docker/              # Tests with Docker containers
-│   ├── windows-gpg/         # Windows build signing tests via GPG
-│   ├── api-hash-signing/    # Hash signing tests via API
-│   └── api-encryption/      # Encryption/decryption tests via API
 ├── utils/                   # Helper utilities
 └── fixtures/                # Test files (builds, etc.)
 ```
@@ -51,8 +47,6 @@ npm run test:watch
 # Tests with coverage
 npm run test:coverage
 
-# Specific test
-npm test -- tests/docker/docker-container.test.ts
 ```
 
 ## Type Checking
@@ -64,12 +58,6 @@ npm run type-check
 # Compile TypeScript
 npm run build
 ```
-
-## Test Examples
-
-### Docker Containers
-
-Tests in `tests/docker/` demonstrate how to start and use Docker containers inside Jest tests using `testcontainers`.
 
 ## Technologies
 
