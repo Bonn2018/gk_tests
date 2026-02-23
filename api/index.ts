@@ -2,7 +2,7 @@
  * API client functions for GoodKey API
  */
 
-const API_BASE_URL = process.env.API_BASE_URL || 'https://api.goodkey.pp.ua';
+const API_BASE_URL = process.env.API_BASE_URL || 'https://api.goodkey.pp.ua/v0';
 
 /**
  * Helper function to make authenticated API requests
@@ -40,11 +40,54 @@ async function makeApiRequest(
 }
 
 /**
- * Get token metadata
+ * Get token metadata (GET /token/profile). Returns profile def-81 with id, organization, keys, certificates.
  */
 export async function getTokenMetadata(token: string) {
   const response = await makeApiRequest(token, 'GET', `/token/profile`);
-  return await response.json() as { organization: { id: string } };
+  return await response.json() as {
+    id: string;
+    organization: { id: string };
+    keys: { id: string }[];
+    certificates: { id: string }[];
+  };
+}
+
+/**
+ * Update access token (PUT /organization/{organizationId}/token/{tokenId}).
+ * Body def-86: keys, certificates (full lists; merge with existing before sending), name, description optional.
+ */
+export async function updateToken(
+  token: string,
+  organizationId: string,
+  tokenId: string,
+  body: { keys?: string[]; certificates?: string[]; name?: string; description?: string }
+): Promise<unknown> {
+  const response = await makeApiRequest(
+    token,
+    'PUT',
+    `/organization/${organizationId}/token/${tokenId}`,
+    body
+  );
+  return await response.json();
+}
+
+/**
+ * Regenerate access token (POST /organization/{organizationId}/token/{tokenId}/regenerate).
+ * Body def-87 (expiresAt optional), response def-80. Returns the new token value.
+ */
+export async function regenerateToken(
+  token: string,
+  organizationId: string,
+  tokenId: string,
+  body?: { expiresAt?: string }
+): Promise<{ value: string }> {
+  const response = await makeApiRequest(
+    token,
+    'POST',
+    `/organization/${organizationId}/token/${tokenId}/regenerate`,
+    body ?? {}
+  );
+  return (await response.json()) as { value: string };
 }
 
 /**
@@ -151,4 +194,92 @@ export async function getKeyMetadata(
     `/key/${keyId}`
   );
   return await response.json();
+}
+
+/** Provider list item (id, name, etc.) */
+export type ProviderListItem = { id: string; name?: string };
+
+/** List of organization providers (def-90) */
+export async function getProviders(
+  token: string,
+  organizationId: string
+): Promise<{ items: ProviderListItem[] }> {
+  const response = await makeApiRequest(
+    token,
+    'GET',
+    `/organization/${organizationId}/providers`
+  );
+  return (await response.json()) as { items: ProviderListItem[] };
+}
+
+/** Full provider with algorithms (def-93) */
+export async function getProvider(
+  token: string,
+  organizationId: string,
+  providerId: string
+): Promise<{ id: string; algorithms: string[] }> {
+  const response = await makeApiRequest(
+    token,
+    'GET',
+    `/organization/${organizationId}/provider/${providerId}`
+  );
+  return (await response.json()) as { id: string; algorithms: string[] };
+}
+
+/** Create key (POST /key, body def-100). Returns key with id (def-101). */
+export async function createKey(
+  token: string,
+  body: { providerId: string; orgId: string; name: string; algorithms: string[] }
+): Promise<{ id: string; algorithms?: string[] }> {
+  const response = await makeApiRequest(token, 'POST', '/key', body);
+  return (await response.json()) as { id: string; algorithms?: string[] };
+}
+
+/** Create self-signed certificate (POST /key/{keyId}/certificate/self_sign). Body def-149, response def-150. */
+export async function createSelfSignedCertificate(
+  token: string,
+  keyId: string,
+  body: { name?: string; algorithm?: { type: string; name: string }, save?: boolean }
+): Promise<{ id: string }> {
+  const response = await makeApiRequest(
+    token,
+    'POST',
+    `/key/${keyId}/certificate/self_sign`,
+    body
+  );
+  return (await response.json()) as { id: string };
+}
+
+/** Create a CSR (POST /key/{keyId}/csr). Body def-147, response def-148. */
+export async function createCSR(
+  token: string,
+  keyId: string,
+  body: { name?: string; certificateId?: string; algorithm?: { type: string; name: string }, save?: boolean }
+): Promise<{ id: string; data: string }> {
+  const response = await makeApiRequest(
+    token,
+    'POST',
+    `/key/${keyId}/csr`,
+    body
+  );
+
+  return (await response.json()) as { id: string; data: string };
+}
+
+/**
+ * Add (import) a certificate to a key. Use for importing a cert signed from a CSR.
+ * POST /key/{keyId}/certificate, body def-143: data (base64url cert), type 'x509', name optional.
+ */
+export async function addKeyCertificate(
+  token: string,
+  keyId: string,
+  body: { data: string; type: 'x509'; name?: string }
+): Promise<{ id: string }> {
+  const response = await makeApiRequest(
+    token,
+    'POST',
+    `/key/${keyId}/certificate`,
+    body
+  );
+  return (await response.json()) as { id: string };
 }

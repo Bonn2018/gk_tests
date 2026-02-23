@@ -24,16 +24,14 @@ describe('API Operations - Invalid Signing', () => {
 
   test('should fail when finalizing operation with raw data instead of hash', async () => {
     const ACCESS_TOKEN = process.env.API_SIGNING_ACCESS_TOKEN;
-    const CERTIFICATE_ID = process.env.TEST_CERTIFICATE_ID;
+    const CERTIFICATE_ID = process.env.TEST_SIGNING_CERTIFICATE_ID;
 
-    // Skip test if required environment variables are not provided
     if (!ACCESS_TOKEN) {
-      console.warn('API_SIGNING_ACCESS_TOKEN not set, skipping test');
-      return;
+      throw new Error('API_SIGNING_ACCESS_TOKEN is required. Set env or run: npm run prepare_env -- -t YOUR_TOKEN');
     }
+
     if (!CERTIFICATE_ID) {
-      console.warn('TEST_CERTIFICATE_ID not set, skipping test');
-      return;
+      throw new Error('TEST_SIGNING_CERTIFICATE_ID is required. Set env or run: npm run prepare_env -- -t YOUR_TOKEN');
     }
 
     const tokenMetadata = await getTokenMetadata(ACCESS_TOKEN);

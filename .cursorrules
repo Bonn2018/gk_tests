@@ -25,7 +25,8 @@
 - Use environment variables for API endpoints
 
 ## Project Structure
-- Tests go in `tests/` directory, organized by type (docker, windows-gpg, api-hash-signing, api-encryption)
+- Tests go in `tests/` directory
 - Utilities go in `utils/` directory
 - Test fixtures go in `fixtures/` directory
+- **File names use snake_case** (e.g. `sign_csr_to_cert.ts`, `prepare_env.ts`). Entry-point files may stay as `index.ts`.
 

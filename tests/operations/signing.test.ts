@@ -12,6 +12,7 @@ import {
   downloadCertificate,
   createSignOperation,
   finalizeOperation,
+  getKeyMetadata,
 } from '../../api';
 import { toBase64Url, verifySignatureWithCertificate } from '../../utils';
 
@@ -22,18 +23,14 @@ describe('API Operations - Hash Signing', () => {
   let testHash: string;
 
   test('should get certificate metadata, create signing operation, finalize and verify signature', async () => {
-    const ALGORITHM = 'RSASSA_PKCS1_2048_SHA256';
     const ACCESS_TOKEN = process.env.API_SIGNING_ACCESS_TOKEN;
-    const CERTIFICATE_ID = process.env.TEST_CERTIFICATE_ID;
+    const CERTIFICATE_ID = process.env.TEST_SIGNING_CERTIFICATE_ID;
 
-    // Skip test if required environment variables are not provided
     if (!ACCESS_TOKEN) {
-      console.warn('API_SIGNING_ACCESS_TOKEN not set, skipping test');
-      return;
+      throw new Error('API_SIGNING_ACCESS_TOKEN is required. Set env or run: npm run prepare_env -- -t YOUR_TOKEN');
     }
     if (!CERTIFICATE_ID) {
-      console.warn('TEST_CERTIFICATE_ID not set, skipping test');
-      return;
+      throw new Error('TEST_SIGNING_CERTIFICATE_ID is required. Set env or run: npm run prepare_env -- -t YOUR_TOKEN');
     }
 
     const tokenMetadata = await getTokenMetadata(ACCESS_TOKEN);
@@ -49,6 +46,13 @@ describe('API Operations - Hash Signing', () => {
     keyId = certificate.key.id;
 
     expect(keyId).toBeDefined();
+
+    // Get algorithm from key metadata (same as invalid_signing flow)
+    const keyMetadata = await getKeyMetadata(ACCESS_TOKEN, keyId);
+    const ALGORITHM = keyMetadata.algorithms?.[0];
+    if (!ALGORITHM) {
+      throw new Error('Key has no algorithms');
+    }
     
     // Step 2: Prepare test data and hash
     testData = 'test data for signing';

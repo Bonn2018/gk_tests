@@ -16,7 +16,7 @@
     "sourceMap": true,
     "types": ["jest", "node"]
   },
-  "include": ["src/**/*", "tests/**/*"],
+  "include": ["src/**/*", "tests/**/*", "api/**/*", "scripts/**/*"],
   "exclude": ["node_modules", "dist"]
 }
 

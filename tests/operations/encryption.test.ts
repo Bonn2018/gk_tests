@@ -11,6 +11,7 @@ import {
   downloadCertificate,
   createDecryptOperation,
   finalizeOperation,
+  getKeyMetadata,
 } from '../../api';
 import { encryptDataLocally } from '../../utils';
 
@@ -20,18 +21,14 @@ describe('API Operations - Encryption/Decryption', () => {
   const plainText = 'Hello, this is a test message for encryption!';
 
   test('should encrypt data locally and decrypt via API', async () => {
-    const ENCRYPT_ALGORITHM = 'RSA_OAEP_2048_SHA256';
     const ACCESS_TOKEN = process.env.API_ENCRYPT_ACCESS_TOKEN || process.env.API_SIGNING_ACCESS_TOKEN;
     const CERTIFICATE_ID = process.env.TEST_ENCRYPT_CERTIFICATE_ID;
 
-    // Skip test if required environment variables are not provided
     if (!ACCESS_TOKEN) {
-      console.warn('API_ENCRYPT_ACCESS_TOKEN or API_SIGNING_ACCESS_TOKEN not set, skipping test');
-      return;
+      throw new Error('API_ENCRYPT_ACCESS_TOKEN or API_SIGNING_ACCESS_TOKEN is required. Set env or run: npm run prepare_env -- -t YOUR_TOKEN');
     }
     if (!CERTIFICATE_ID) {
-      console.warn('TEST_ENCRYPT_CERTIFICATE_ID not set, skipping test');
-      return;
+      throw new Error('TEST_ENCRYPT_CERTIFICATE_ID is required. Set env or run: npm run prepare_env -- -t YOUR_TOKEN');
     }
 
     // Step 1: Get organization ID
@@ -43,6 +40,13 @@ describe('API Operations - Encryption/Decryption', () => {
     expect(certificate).toBeDefined();
     keyId = certificate.key.id;
     expect(keyId).toBeDefined();
+
+    // Get algorithm from key metadata
+    const keyMetadata = await getKeyMetadata(ACCESS_TOKEN, keyId);
+    const ENCRYPT_ALGORITHM = keyMetadata.algorithms?.[0];
+    if (!ENCRYPT_ALGORITHM) {
+      throw new Error('Key has no algorithms');
+    }
 
     // Step 3: Download certificate
     const certificateBuffer = await downloadCertificate(ACCESS_TOKEN, organizationId, CERTIFICATE_ID);

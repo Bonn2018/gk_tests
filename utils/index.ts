@@ -5,6 +5,9 @@
 import * as crypto from 'crypto';
 import { X509Certificate } from '@peculiar/x509';
 
+export { signCsrWithTempCa } from './sign_csr_to_cert';
+export type { SignCsrResult } from './sign_csr_to_cert';
+
 /**
  * Convert buffer to base64url encoding
  */
