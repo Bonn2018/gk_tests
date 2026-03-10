@@ -30,3 +30,8 @@
 - Test fixtures go in `fixtures/` directory
 - **File names use snake_case** (e.g. `sign_csr_to_cert.ts`, `prepare_env.ts`). Entry-point files may stay as `index.ts`.
 
+## Provider selection for multi-algorithm keys
+- When creating a key with **two or more algorithms** (e.g. signing + encryption), the chosen provider **must** support multi-algorithms.
+- From the provider metadata (e.g. `getProvider` response), ensure **`multiAlgorithms === true`** before using that provider for such a key.
+- If you only check that the provider's `algorithms` list contains the desired algorithms, the key creation or operations may fail when the provider does not support multi-algorithm keys.
+

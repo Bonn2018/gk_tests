@@ -229,7 +229,7 @@ export async function updateKey(
 export async function deactivateKey(token: string, keyId: string): Promise<any> {
   const response = await makeApiRequest(
     token,
-    'POST',
+    'PATCH',
     `/key/${keyId}/deactivate`,
     {}
   );
@@ -257,13 +257,13 @@ export async function getProvider(
   token: string,
   organizationId: string,
   providerId: string
-): Promise<{ id: string; algorithms: string[] }> {
+): Promise<{ id: string; algorithms: string[], multiAlgorithms: boolean }> {
   const response = await makeApiRequest(
     token,
     'GET',
     `/organization/${organizationId}/provider/${providerId}`
   );
-  return (await response.json()) as { id: string; algorithms: string[] };
+  return (await response.json()) as { id: string; algorithms: string[]; multiAlgorithms: boolean };
 }
 
 /** Create key (POST /key, body def-100). Returns key with id (def-101). */
