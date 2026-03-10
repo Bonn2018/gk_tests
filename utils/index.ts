@@ -67,6 +67,38 @@ export async function verifySignatureWithCertificate(
 }
 
 /**
+ * Verify signature using public key PEM (e.g. from API or file)
+ */
+export function verifySignatureWithPublicKey(
+  data: Buffer,
+  signature: string,
+  publicKeyPem: string,
+  algorithm: string
+): boolean {
+  try {
+    const signatureBuffer = fromBase64Url(signature);
+
+    let hashAlgorithm = 'sha256';
+    if (algorithm.includes('SHA1')) {
+      hashAlgorithm = 'sha1';
+    } else if (algorithm.includes('SHA384')) {
+      hashAlgorithm = 'sha384';
+    } else if (algorithm.includes('SHA512')) {
+      hashAlgorithm = 'sha512';
+    }
+
+    const verify = crypto.createVerify(hashAlgorithm.toUpperCase());
+    verify.update(data);
+    verify.end();
+
+    return verify.verify(publicKeyPem, signatureBuffer);
+  } catch (error) {
+    console.error('Signature verification error:', error);
+    return false;
+  }
+}
+
+/**
  * Encrypt data locally using certificate's public key
  */
 export async function encryptDataLocally(
@@ -103,5 +135,38 @@ export async function encryptDataLocally(
     return toBase64Url(encrypted);
   } catch (error) {
     throw new Error(`Failed to encrypt data locally: ${error}`);
+  }
+}
+
+/**
+ * Encrypt data locally using public key PEM (e.g. from API key/{keyId}/public?format=pem)
+ */
+export function encryptDataWithPublicKey(
+  data: Buffer,
+  publicKeyPem: string,
+  algorithm: string
+): string {
+  try {
+    let hashAlgorithm = 'sha256';
+    if (algorithm.includes('SHA1')) {
+      hashAlgorithm = 'sha1';
+    } else if (algorithm.includes('SHA384')) {
+      hashAlgorithm = 'sha384';
+    } else if (algorithm.includes('SHA512')) {
+      hashAlgorithm = 'sha512';
+    }
+
+    const encrypted = crypto.publicEncrypt(
+      {
+        key: publicKeyPem,
+        padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+        oaepHash: hashAlgorithm,
+      },
+      data
+    );
+
+    return toBase64Url(encrypted);
+  } catch (error) {
+    throw new Error(`Failed to encrypt data with public key: ${error}`);
   }
 }
