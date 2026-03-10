@@ -106,6 +106,15 @@ export async function getCertificateMetadata(
   return await response.json();
 }
 
+export async function getPublicKey(token: string, keyId: string): Promise<any> {
+  const response = await makeApiRequest(
+    token,
+    'GET',
+    `/key/${keyId}/public`
+  );
+  return await response.blob();
+}
+
 /**
  * Download certificate file
  */
@@ -192,6 +201,37 @@ export async function getKeyMetadata(
     token,
     'GET',
     `/key/${keyId}`
+  );
+  return await response.json();
+}
+
+/**
+ * Update key (PATCH /key/{keyId}). Body can include quorum (number of approvals required).
+ */
+export async function updateKey(
+  token: string,
+  keyId: string,
+  body: { quorum?: number }
+): Promise<any> {
+  const response = await makeApiRequest(
+    token,
+    'PUT',
+    `/key/${keyId}`,
+    body
+  );
+  return await response.json();
+}
+
+/**
+ * Deactivate a key. After deactivation, operations cannot be created or finalized.
+ * Uses POST /key/{keyId}/deactivate (common REST pattern; if API differs, adjust endpoint).
+ */
+export async function deactivateKey(token: string, keyId: string): Promise<any> {
+  const response = await makeApiRequest(
+    token,
+    'POST',
+    `/key/${keyId}/deactivate`,
+    {}
   );
   return await response.json();
 }

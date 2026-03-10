@@ -9,7 +9,9 @@
     "test:coverage": "jest --coverage",
     "build": "tsc",
     "type-check": "tsc --noEmit",
-    "prepare_env": "ts-node scripts/prepare_env.ts"
+    "prepare_env": "ts-node scripts/prepare_env.ts",
+    "sign_json_to_file": "ts-node scripts/sign_json_to_file.ts",
+    "verify_json_with_signature": "ts-node scripts/verify_json_with_signature.ts"
   },
   "repository": {
     "type": "git",
