@@ -2,8 +2,6 @@
  * API client functions for GoodKey API
  */
 
-const API_BASE_URL = process.env.API_BASE_URL || 'https://api.goodkey.pp.ua/v0';
-
 /**
  * Helper function to make authenticated API requests
  */
@@ -13,7 +11,7 @@ async function makeApiRequest(
   endpoint: string,
   body?: any
 ): Promise<Response> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = `${process.env.API_BASE_URL}${endpoint}`;
   const headers: Record<string, string> = {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
@@ -321,5 +319,32 @@ export async function addKeyCertificate(
     `/key/${keyId}/certificate`,
     body
   );
+  return (await response.json()) as { id: string };
+}
+
+export async function registerAuthentificator(
+  token: string,
+  organizationId: string,
+  body: {
+    productId: string;
+    serialNumber: string;
+    label: string;
+    credentials: {
+      profileType: string;
+      type: string;
+      value: string;
+    }[];
+    firmware: string;
+    profilesData: {
+      [key: string]: {
+        info: {
+          status: string;
+        };
+        objects?: any[];
+      };
+    };
+  }
+): Promise<{ id: string }> {
+  const response = await makeApiRequest(token, 'POST', `/organization/${organizationId}/authenticators/register`, body);
   return (await response.json()) as { id: string };
 }

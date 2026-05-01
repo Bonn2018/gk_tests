@@ -4,7 +4,7 @@
  *
  * Usage: npm run prepare_env -- -t YOUR_TOKEN
  */
-
+import dotenv from 'dotenv';
 import { randomUUID } from 'crypto';
 import {
   getTokenMetadata,
@@ -20,6 +20,7 @@ import {
 import { parseTokenFromArgv, readEnvFile, appendEnv, addKeyToToken, addCertToToken } from './utils';
 import { signCsrWithTempCa, toBase64Url } from '../utils';
 import { Pkcs10CertificateRequest, X509Certificate } from '@peculiar/x509';
+import path from 'path';
 
 // Popular algorithms (from API def-92). First match with provider wins.
 const POPULAR_SIGNING_ALGORITHMS = [
@@ -35,7 +36,10 @@ const POPULAR_ENCRYPT_ALGORITHMS = [
   'RSA_OAEP_3072_SHA1',
 ];
 
+
 async function main(): Promise<void> {
+  dotenv.config({ path: path.resolve(__dirname, '../env/.env.dev') });
+
   const accessToken = parseTokenFromArgv();
   if (!accessToken) {
     console.error('Usage: npm run prepare_env -- -t YOUR_TOKEN');
@@ -48,6 +52,7 @@ async function main(): Promise<void> {
   for (const [k, v] of Object.entries(existing)) {
     if (process.env[k] === undefined) process.env[k] = v;
   }
+
   if (!process.env.API_BASE_URL) process.env.API_BASE_URL = 'https://api.goodkey.pp.ua/v0';
 
   let organizationId: string = '';
@@ -56,6 +61,7 @@ async function main(): Promise<void> {
   let currentCertIds: string[] = [];
   try {
     const meta = await getTokenMetadata(accessToken);
+
     if (!meta.id || !meta.organization?.id) {
       throw new Error('Token profile missing id or organization');
     }
